@@ -1,0 +1,11 @@
+pandas
+numpy
+scikit-learn
+lightgbm
+statsmodels
+simpy
+pyyaml
+joblib
+streamlit
+plotly
+pytest
