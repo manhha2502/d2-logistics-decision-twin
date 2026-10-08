@@ -1,0 +1,10 @@
+﻿file,field,unit,meaning,note
+model_training_15min.csv,r1_demand_totes,totes/15min,Target-route material demand,Forecast target candidate
+model_training_15min.csv,travel_loaded_min,min,Loaded travel time on R1,Forecast driver
+model_training_15min.csv,picking_min,min,Picking process time,Forecast driver
+model_training_15min.csv,r1_amr_available,count,Available R1 AMRs,Known/current driver
+model_training_15min.csv,r1_queue_start_totes,totes,Queue entering window,State feature
+model_training_15min.csv,r1_utilization,ratio,Demand+queue divided by effective route capacity,State/risk feature
+buffer_state_15min.csv,fill_ratio,0–1,Line-side buffer fill ratio,Buffer risk signal
+future_actuals_15min.csv,r1_severity,category,Hidden future severity,VALIDATION ONLY
+window_labels_15min.csv,ground_truth_causes,category list,Injected cause labels,VALIDATION ONLY

@@ -1,0 +1,6 @@
+﻿resource_id,resource_type,home_route,payload_totes,empty_speed_mps,loaded_speed_mps,battery_capacity_pct,min_dispatch_battery_pct
+AMR01,AMR,R1,3,1.1,0.9,100,20
+AMR02,AMR,R1,3,1.1,0.9,100,20
+AMR03,AMR,R1,3,1.1,0.9,100,20
+AMR04,AMR,R2,3,1.1,0.9,100,20
+AMR05,AMR,R2,3,1.1,0.9,100,20

@@ -1,0 +1,4 @@
+﻿event_id,start_time,end_time,event_type,target_id,magnitude,description
+EV028,2026-10-08 14:15:00,2026-10-08 15:00:00,AMR_MAINTENANCE,AMR03,1.0,Planned maintenance; R1 available AMRs 3→2.
+EV029,2026-10-08 14:30:00,2026-10-08 15:30:00,PRODUCTION_RAMP,LINE_A,1.35,Known production plan +35%.
+EV030,2026-10-08 14:30:00,2026-10-08 15:30:00,AUX_ROUTE_PEAK,R2,1.35,Known R2 demand peak; used for secondary-bottleneck testing.

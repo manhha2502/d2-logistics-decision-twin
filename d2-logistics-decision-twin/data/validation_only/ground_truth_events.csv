@@ -1,0 +1,32 @@
+﻿event_id,start_time,end_time,event_type,target,magnitude,visibility,note
+EV001,2026-08-15 10:00:00,2026-08-15 11:00:00,DEMAND_SPIKE,LINE_A,1.45,HISTORICAL,Historical injected scenario for robustness/testing.
+EV002,2026-08-16 15:30:00,2026-08-16 16:45:00,TRAVEL_CONGESTION,R1,1.35,HISTORICAL,Historical injected scenario for robustness/testing.
+EV003,2026-08-18 18:00:00,2026-08-18 19:00:00,AMR_MAINTENANCE,AMR03,1.0,HISTORICAL,Historical injected scenario for robustness/testing.
+EV004,2026-08-22 10:00:00,2026-08-22 10:45:00,PICKING_SLOWDOWN,PICK,1.55,HISTORICAL,Historical injected scenario for robustness/testing.
+EV005,2026-08-23 15:30:00,2026-08-23 16:30:00,HANDLING_HEAVY_TAIL,R1,1.0,HISTORICAL,Historical injected scenario for robustness/testing.
+EV006,2026-08-25 18:00:00,2026-08-25 19:00:00,REPLENISHMENT_DELAY,LINE_A,0.55,HISTORICAL,Historical injected scenario for robustness/testing.
+EV007,2026-08-29 10:00:00,2026-08-29 10:45:00,LINE_MICROSTOP,LINE_A,0.45,HISTORICAL,Historical injected scenario for robustness/testing.
+EV008,2026-08-30 15:30:00,2026-08-30 16:15:00,CHARGING_DELAY,AMR02,1.0,HISTORICAL,Historical injected scenario for robustness/testing.
+EV009,2026-09-01 18:00:00,2026-09-01 18:30:00,URGENT_ORDER_INSERTION,LINE_A,3.0,HISTORICAL,Historical injected scenario for robustness/testing.
+EV010,2026-09-05 10:00:00,2026-09-05 11:15:00,MULTI_CAUSE,R1,1.0,HISTORICAL,Historical injected scenario for robustness/testing.
+EV011,2026-09-06 15:30:00,2026-09-06 16:30:00,AUX_ROUTE_PEAK,R2,1.45,HISTORICAL,Historical injected scenario for robustness/testing.
+EV012,2026-09-08 18:00:00,2026-09-08 19:00:00,DEMAND_SPIKE,LINE_A,1.45,HISTORICAL,Historical injected scenario for robustness/testing.
+EV013,2026-09-12 10:00:00,2026-09-12 11:15:00,TRAVEL_CONGESTION,R1,1.35,HISTORICAL,Historical injected scenario for robustness/testing.
+EV014,2026-09-13 15:30:00,2026-09-13 16:30:00,AMR_MAINTENANCE,AMR03,1.0,HISTORICAL,Historical injected scenario for robustness/testing.
+EV015,2026-09-15 18:00:00,2026-09-15 18:45:00,PICKING_SLOWDOWN,PICK,1.55,HISTORICAL,Historical injected scenario for robustness/testing.
+EV016,2026-09-19 10:00:00,2026-09-19 11:00:00,HANDLING_HEAVY_TAIL,R1,1.0,HISTORICAL,Historical injected scenario for robustness/testing.
+EV017,2026-09-20 15:30:00,2026-09-20 16:30:00,REPLENISHMENT_DELAY,LINE_A,0.55,HISTORICAL,Historical injected scenario for robustness/testing.
+EV018,2026-09-22 18:00:00,2026-09-22 18:45:00,LINE_MICROSTOP,LINE_A,0.45,HISTORICAL,Historical injected scenario for robustness/testing.
+EV019,2026-09-26 10:00:00,2026-09-26 10:45:00,CHARGING_DELAY,AMR02,1.0,HISTORICAL,Historical injected scenario for robustness/testing.
+EV020,2026-09-27 15:30:00,2026-09-27 16:00:00,URGENT_ORDER_INSERTION,LINE_A,3.0,HISTORICAL,Historical injected scenario for robustness/testing.
+EV021,2026-09-29 18:00:00,2026-09-29 19:15:00,MULTI_CAUSE,R1,1.0,HISTORICAL,Historical injected scenario for robustness/testing.
+EV022,2026-10-03 10:00:00,2026-10-03 11:00:00,AUX_ROUTE_PEAK,R2,1.45,HISTORICAL,Historical injected scenario for robustness/testing.
+EV023,2026-10-04 15:30:00,2026-10-04 16:30:00,DEMAND_SPIKE,LINE_A,1.45,HISTORICAL,Historical injected scenario for robustness/testing.
+EV024,2026-10-06 18:00:00,2026-10-06 19:15:00,TRAVEL_CONGESTION,R1,1.35,HISTORICAL,Historical injected scenario for robustness/testing.
+EV025,2026-08-26 16:15:00,2026-08-26 17:45:00,MULTI_CAUSE,R1,1.0,HISTORICAL,Demand + AMR availability + travel stress.
+EV026,2026-09-11 16:15:00,2026-09-11 17:45:00,MULTI_CAUSE,R1,1.0,HISTORICAL,Demand + AMR availability + travel stress.
+EV027,2026-09-25 16:15:00,2026-09-25 17:45:00,MULTI_CAUSE,R1,1.0,HISTORICAL,Demand + AMR availability + travel stress.
+EV028,2026-10-08 14:15:00,2026-10-08 15:00:00,AMR_MAINTENANCE,AMR03,1.0,KNOWN_INPUT,Planned maintenance; R1 available AMRs 3→2.
+EV029,2026-10-08 14:30:00,2026-10-08 15:30:00,PRODUCTION_RAMP,LINE_A,1.35,KNOWN_INPUT,Known production plan +35%.
+EV030,2026-10-08 14:30:00,2026-10-08 15:30:00,AUX_ROUTE_PEAK,R2,1.35,KNOWN_INPUT,Known R2 demand peak; used for secondary-bottleneck testing.
+EV031,2026-10-08 13:00:00,2026-10-08 15:15:00,TRAVEL_CONGESTION,R1,1.35,HISTORICAL,Travel rise begins before NOW; future continuation is hidden and forecastable.

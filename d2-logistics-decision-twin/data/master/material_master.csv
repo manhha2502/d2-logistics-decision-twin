@@ -1,0 +1,3 @@
+﻿material_id,description,logistics_unit,units_per_tote,units_per_product,buffer_capacity_totes,reorder_point_totes,safety_stock_totes,avg_tote_weight_kg,default_priority
+MAT_A,High-runner component,tote,10,1.0,28,10,6,8.0,2
+MAT_B,Variant component,tote,20,2.0,24,8,5,6.5,2

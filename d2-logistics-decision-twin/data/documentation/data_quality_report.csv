@@ -1,0 +1,8 @@
+﻿file,metric,value,unit,note
+raw_process_trip_history.csv,rows,32002,rows,
+raw_process_trip_history.csv,rows_with_one_missing_measurement,258,rows,0.8074% of original rows
+raw_process_trip_history.csv,duplicate_rows_injected,47,rows,
+resource_telemetry_5min_raw.csv,rows,80725,rows,
+resource_telemetry_5min_raw.csv,rows_with_one_missing_measurement,659,rows,0.8172% of original rows
+resource_telemetry_5min_raw.csv,duplicate_rows_injected,80,rows,
+model_training_15min.csv,rows,5377,rows,"Clean, no ground-truth label column"

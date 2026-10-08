@@ -1,0 +1,13 @@
+﻿scenario_type,mechanism,expected_severity,candidate_response_for_testing
+NORMAL,Stable demand/resources; utilization usually below bottleneck threshold,NORMAL,Baseline / no action
+DEMAND_SPIKE,Production/material demand rises faster than nominal capacity,WARNING→CRITICAL,Priority request; adjust replenishment; batch/consolidate
+AMR_MAINTENANCE,One R1 AMR unavailable,HIGH/CRITICAL if demand is high,Reassign AMR; prioritize requests
+TRAVEL_CONGESTION,Loaded/empty travel time rises,WARNING→CRITICAL,Alternate route; reassign AMR
+PICKING_SLOWDOWN,Picking duration increases,WARNING/HIGH,Prioritize; rebalance upstream work
+HANDLING_HEAVY_TAIL,Occasional long loading/unloading times,WARNING/HIGH,Buffer timing; resource/action review
+REPLENISHMENT_DELAY,Only a fraction of expected delivery reaches line-side buffer,HIGH/CRITICAL via low buffer,Adjust replenishment; prioritize material
+LINE_MICROSTOP,Consumption falls while deliveries continue,WARNING/HIGH via high buffer/blocking,Delay/consolidate delivery
+CHARGING_DELAY,AMR temporarily unavailable due charge,WARNING/HIGH,Reassign available AMR
+URGENT_ORDER_INSERTION,Extra high-priority transport request,WARNING/HIGH,Priority request; reassign AMR
+AUX_ROUTE_PEAK,R2 load rises,Usually NORMAL/HIGH on R2,Protect against secondary bottleneck
+MULTI_CAUSE,Demand spike + AMR loss + travel increase,HIGH/CRITICAL,Combined actions; simulator required

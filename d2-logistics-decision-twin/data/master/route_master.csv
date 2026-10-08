@@ -1,0 +1,3 @@
+﻿route_id,origin,destination,distance_m,base_loaded_travel_min,base_empty_travel_min,normal_amr_assigned,payload_totes_per_amr,staging_capacity_totes,vehicle_type,note
+R1,Warehouse,LINE_A,520,5.2,4.3,3,3,24,AMR,Target route
+R2,Warehouse,AUX_AREA,410,4.5,3.8,2,3,16,AMR,Auxiliary route/resource pool

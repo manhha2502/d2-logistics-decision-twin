@@ -1,0 +1,6 @@
+﻿station_id,station_type,capacity,note
+WH,Warehouse,999,Warehouse/source
+PICK,Picking,1,Picking station
+STG_R1,Staging,24,Main-route staging
+LINE_A_BUF,Line-side Buffer,52,Combined nominal buffer capacity
+AUX,Auxiliary Area,16,Secondary demand area

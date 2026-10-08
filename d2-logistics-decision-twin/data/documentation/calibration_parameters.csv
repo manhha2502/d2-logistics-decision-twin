@@ -1,0 +1,12 @@
+﻿parameter,synthetic_value,basis_type,rationale
+Fleet size,"5 AMRs total: R1=3, R2=2",Literature-anchored synthetic,ROHTO reports 4–5 simultaneous AGVs; study evaluates 3–6.
+Decision/forecast interval,15 min,Project design,Matches D2 prototype design; real AGV studies often group jobs at short recurring intervals.
+Normal utilization target,55–75%,Literature sanity anchor,Schneider ~59%; automotive DES ~67% in nominal feasible cases.
+Payload,3 totes/trip,Synthetic assumption,Chosen so normal operation has reserve while multi-cause events can overload the route.
+R1 loaded/empty travel,5.2 / 4.3 min,Synthetic assumption,Plausible prototype values only; not copied from DENSO.
+R2 loaded/empty travel,4.5 / 3.8 min,Synthetic assumption,Aux route is shorter with two AMRs.
+Handling time,"load ~1.15 min, unload ~0.95 min",Synthetic + literature pattern,Heavy-tail stress episode follows the stochastic-handling idea used in Schneider DES.
+Raw-data missingness,~0.8% of raw rows receive one missing timing/telemetry field,Literature-anchored synthetic,Bosch/SECOM demonstrate missing/noisy industrial logs.
+Raw duplicates,~0.1–0.15%,Synthetic data-quality test,Supports validator/de-duplication testing.
+History length,56 days,Modeling choice,"Gives >5,000 15-min windows for LightGBM without making the prototype unwieldy."
+Hidden future validation,120 min,Modeling choice,Validates the 60-min forecast plus downstream queue/buffer effects.
