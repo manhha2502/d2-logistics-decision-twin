@@ -1,0 +1,51 @@
+# D2 Logistics Decision Twin - Decision Modes & Evaluation Criteria
+# Cấu hình trọng số và ràng buộc động cho việc xếp hạng và lựa chọn kịch bản (Scenario)
+
+decision_modes:
+  balanced:
+    name: "Cân bằng tổng thể"
+    weights:
+      service_level: 0.25
+      throughput: 0.20
+      waiting_time: 0.15
+      queue_reduction: 0.15
+      late_delivery: 0.10
+      disruption: 0.15
+
+  service_priority:
+    name: "Ưu tiên dịch vụ & Chống dừng chuyền"
+    weights:
+      service_level: 0.35
+      throughput: 0.25
+      waiting_time: 0.15
+      queue_reduction: 0.15
+      late_delivery: 0.08
+      disruption: 0.02
+
+  low_disruption:
+    name: "Hạn chế xáo trộn vận hành"
+    weights:
+      disruption: 0.55
+      service_level: 0.15
+      throughput: 0.10
+      waiting_time: 0.10
+      queue_reduction: 0.05
+      late_delivery: 0.05
+
+dynamic_constraints:
+  max_buffer_overflow: 0.0
+  max_starvation_minutes: 0.0
+  max_unmet_consumption: 0.0
+  max_late_delivery_count: 5
+  max_amr_utilization: 0.95
+  reject_secondary_bottleneck: true
+  secondary_bottleneck_penalty: 0.50
+
+robustness:
+  top_k_scenarios: 3
+  test_conditions:
+    - "favorable"  # P10
+    - "expected"   # P50
+    - "adverse"    # P90
+  adverse_reduce_amr_count: 1
+  enable_adverse_amr_reduction: true

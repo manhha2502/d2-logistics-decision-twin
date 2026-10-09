@@ -1,0 +1,96 @@
+# D2 Logistics Decision Twin - Action Knowledge Base
+# Định nghĩa 5 hành động phản ứng logistics, nguyên nhân giải quyết, tham số và ràng buộc
+
+actions:
+  PRIORITIZE_REQUEST:
+    name: "Ưu tiên đơn hàng cấp thiết"
+    description: "Đẩy các yêu cầu cấp liệu cho dây chuyền mục tiêu lên đầu hàng đợi bốc dỡ/vận chuyển"
+    addresses_causes:
+      - "DEMAND_SPIKE"
+      - "PICKING_SLOWDOWN"
+      - "BUFFER_LOW"
+    required_params:
+      - "target_line"
+      - "material_id"
+      - "priority_level"
+    default_params:
+      target_line: "LINE_A"
+      material_id: "ALL"
+      priority_level: "HIGH"
+    conflicts_with:
+      - "CONSOLIDATE_DELIVERY"
+    disruption_level: 1.0
+    cost_weight: 0.1
+
+  REASSIGN_AMR:
+    name: "Điều chuyển xe AMR giữa các tuyến"
+    description: "Tạm thời mượn AMR từ tuyến phụ (R2) sang hỗ trợ tuyến chính (R1) khi thiếu hụt năng lực"
+    addresses_causes:
+      - "DEMAND_SPIKE"
+      - "AMR_AVAILABILITY_DROP"
+      - "TRAVEL_TIME_INCREASE"
+    required_params:
+      - "from_route"
+      - "to_route"
+      - "count"
+      - "start_time"
+      - "duration_min"
+    default_params:
+      from_route: "R2"
+      to_route: "R1"
+      count: 1
+      start_time: "NOW"
+      duration_min: 45
+    conflicts_with: []
+    disruption_level: 3.0
+    cost_weight: 0.5
+
+  ALTERNATE_ROUTE:
+    name: "Đổi tuyến đường vận chuyển thay thế"
+    description: "Chuyển hướng di chuyển sang lộ trình dự phòng khi tuyến chính bị tắc nghẽn hoặc thời gian di chuyển tăng cao"
+    addresses_causes:
+      - "TRAVEL_TIME_INCREASE"
+    required_params:
+      - "target_route"
+      - "alternate_route_id"
+    default_params:
+      target_route: "R1"
+      alternate_route_id: null
+    conflicts_with: []
+    disruption_level: 2.0
+    cost_weight: 0.3
+
+  ADJUST_REPLENISHMENT_TIME:
+    name: "Điều chỉnh thời điểm bổ sung vật tư"
+    description: "Kích hoạt lệnh cấp liệu sớm hơn hoặc lùi lại để tránh thời điểm cao điểm và chống tràn/cạn buffer"
+    addresses_causes:
+      - "DEMAND_SPIKE"
+      - "HANDLING_TIME_INCREASE"
+      - "BUFFER_LOW"
+      - "BUFFER_FULL"
+    required_params:
+      - "target_line"
+      - "shift_minutes"
+    default_params:
+      target_line: "LINE_A"
+      shift_minutes: -15
+    conflicts_with: []
+    disruption_level: 1.5
+    cost_weight: 0.2
+
+  CONSOLIDATE_DELIVERY:
+    name: "Gộp các chuyến giao hàng"
+    description: "Gộp nhiều yêu cầu vật tư vào cùng một lượt vận chuyển để tăng hiệu suất tải trọng tote của AMR"
+    addresses_causes:
+      - "DEMAND_SPIKE"
+      - "BUFFER_LOW"
+    required_params:
+      - "target_route"
+      - "batch_size_totes"
+    default_params:
+      target_route: "R1"
+      batch_size_totes: 3
+    conflicts_with:
+      - "PRIORITIZE_REQUEST"
+    disruption_level: 2.0
+    cost_weight: 0.25
