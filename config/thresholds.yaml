@@ -1,0 +1,31 @@
+dcr:
+  high: 0.85
+  critical: 1.0
+queue:
+  growth: 2.0
+  max_for_risk: 24.0
+waiting_time:
+  high: 5.0
+  max_for_risk: 15.0
+utilization:
+  high: 0.85
+buffer:
+  low_ratio: 0.25
+  critical_ratio: 0.10
+  full_ratio: 0.95
+  capacity_mat_a: 28
+  capacity_mat_b: 24
+risk:
+  weights:
+    dcr: 0.30
+    queue_growth: 0.20
+    waiting: 0.15
+    utilization: 0.20
+    buffer: 0.15
+  severity:
+    medium: 40
+    high: 65
+    critical: 85
+diagnosis:
+  demand_increase_pct: 20
+  process_increase_pct: 15
