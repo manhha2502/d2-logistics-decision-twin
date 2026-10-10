@@ -1,0 +1,14 @@
+bottleneck:
+  dcr_high: 0.85
+  dcr_critical: 1.0
+  queue_growth_high: 5
+  high_utilization: 0.8
+  low_buffer_ratio: 0.3
+  critical_low_buffer_ratio: 0.15
+  buffer_overflow_totes: 0
+simulation:
+  late_delivery_threshold_min: 20.0
+  secondary_bottleneck_utilization: 0.8
+  min_dispatch_battery_pct: 20.0
+  secondary_bottleneck_wait_min: 20.0
+  secondary_bottleneck_worsening: 0.05

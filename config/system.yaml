@@ -7,7 +7,6 @@ interval_min: 15
 max_scenarios: 8
 default_decision_mode: balanced
 seed: 42
-# Replay time of the supplied PEAK v2 snapshot, not the wall clock.
 snapshot_time: '2026-10-08 14:00:00'
 paths:
   current_state: data/current/current_state.csv
@@ -15,3 +14,59 @@ paths:
   production_plan: data/known_future/future_production_plan_15min.csv
   master_dir: data/master
   artifacts_dir: artifacts
+  # optional overrides (used when master_dir is set, they win)
+  master_resource: data/master/resource_master.csv
+  master_route: data/master/route_master.csv
+  master_station: data/master/station_master.csv
+  master_material: data/master/material_master.csv
+  # history calibration sources
+  transport_jobs: data/history/transport_jobs.csv
+  trip_history: data/history/process_trip_history_clean.csv
+
+# nested simulation config
+simulation:
+  # structural — duplicated from root for nested-only consumers
+  horizon_min: 60
+  interval_min: 15
+  default_seed: 42
+
+  # process-time defaults (fallback khi không có history/forecast)
+  default_picking_min: 3.0
+  default_loading_min: 1.0
+  default_unloading_min: 1.0
+
+  # history calibration
+  calibrate_from_history: true
+  baseline_lookback_days: 7
+
+  # request schedule
+  arrival_jitter: true
+  process_noise_cv: 0.0
+
+  # monitors
+  consumption_step_min: 1.0
+  queue_sample_min: 1.0
+
+  # action defaults
+  default_replenishment_shift_min: 5.0
+
+  # baseline fallbacks when no forecast / plan / history
+  baseline_demand_r2: 2.0
+  # baseline_demand_r1 không cần: nếu thiếu mọi nguồn, build_conditions raise.
+
+  # job size + picker capacity (None = calibrate)
+  job_size_totes: null        # null → dùng payload AMR / history mean
+  picker_capacity: null       # null → dùng station_master capacity (= 1)
+
+#  route IDs
+routes:
+  main: R1
+  auxiliary: R2
+  line_buffer_station: LINE_A_BUF
+  picker_station: PICK
+  staging_r1: STG_R1
+
+# secondary-bottleneck behaviour
+secondary_bottleneck:
+  utilization_threshold: 0.80
+  adverse_reduce_amr: false
