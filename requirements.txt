@@ -6,6 +6,7 @@ statsmodels
 simpy
 pyyaml
 joblib
-streamlit
+streamlit>=1.40,<2
 plotly
 pytest
+tzdata

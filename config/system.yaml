@@ -1,0 +1,17 @@
+project: D2 Logistics Decision Twin
+timezone: Asia/Ho_Chi_Minh
+target_line: LINE_A
+target_route: R1
+horizon_min: 60
+interval_min: 15
+max_scenarios: 8
+default_decision_mode: balanced
+seed: 42
+# Replay time of the supplied PEAK v2 snapshot, not the wall clock.
+snapshot_time: '2026-10-08 14:00:00'
+paths:
+  current_state: data/current/current_state.csv
+  known_events: data/known_future/known_future_events.csv
+  production_plan: data/known_future/future_production_plan_15min.csv
+  master_dir: data/master
+  artifacts_dir: artifacts
