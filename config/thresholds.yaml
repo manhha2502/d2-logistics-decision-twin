@@ -1,3 +1,9 @@
+simulation:
+  late_delivery_threshold_min: 20.0
+  secondary_bottleneck_utilization: 0.8
+  min_dispatch_battery_pct: 20.0
+  secondary_bottleneck_wait_min: 20.0
+  secondary_bottleneck_worsening: 0.05
 dcr:
   high: 0.85
   critical: 1.0
