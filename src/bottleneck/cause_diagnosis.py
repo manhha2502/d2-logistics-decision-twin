@@ -8,7 +8,7 @@ from typing import Any
 import pandas as pd
 
 from src.bottleneck.hard_rules import DEFAULT_CONFIG, _overflow_parts, load_thresholds
-from src.common.schemas import Cause, ForecastPoint, FutureState
+from src.common.schemas import BottleneckEvent, Cause, ForecastPoint, FutureState
 
 
 def _event_records(value: Any) -> list[dict[str, Any]]:
@@ -160,3 +160,60 @@ def diagnose_causes(
 
 
 diagnose_bottleneck_causes = diagnose_causes
+
+
+def diagnose_bottlenecks(
+    bottlenecks: list[BottleneckEvent],
+    future_states: list[FutureState],
+    current_state: pd.DataFrame,
+    forecasts: list[ForecastPoint],
+    known_events: Any,
+    config: dict[str, Any],
+) -> list[Cause]:
+    """Adapt detected events to the state-based diagnosis API.
+
+    Baselines use only the latest four model-ready history rows at or before
+    the snapshot. This keeps demand and process evidence independent of future
+    validation labels and of the forecast being diagnosed.
+    """
+    now = pd.Timestamp(config["now"])
+    history_path = Path(config["root"]) / "data/model_ready/model_training_15min.csv"
+    history = pd.read_csv(history_path, parse_dates=["timestamp"])
+    recent = history.loc[history["timestamp"] <= now].tail(4)
+    if recent.empty:
+        raise ValueError(f"No baseline history at or before {now}")
+    history_fields = {
+        "demand": "r1_demand_totes",
+        "travel_loaded": "travel_loaded_min",
+        "travel_empty": "travel_empty_min",
+        "picking_time": "picking_min",
+        "loading_time": "loading_min",
+        "unloading_time": "unloading_min",
+    }
+    r1_baseline = {name: float(recent[column].mean()) for name, column in history_fields.items()}
+    resources = current_state.loc[current_state["entity_type"] == "RESOURCE"]
+    resource_metrics = resources.pivot(index="entity_id", columns="metric", values="value")
+    current_amr = {
+        route: sum(
+            str(row.get("route_id")) == route and float(row.get("available", 0)) > 0
+            for _, row in resource_metrics.iterrows()
+        )
+        for route in ("R1", "R2")
+    }
+    states = {(state.location, pd.Timestamp(state.timestamp)): state for state in future_states}
+    points = {pd.Timestamp(point.timestamp): point for point in forecasts}
+    found: dict[tuple[str, str], Cause] = {}
+    for event in sorted(bottlenecks, key=lambda item: item.predicted_time):
+        key = (event.location, pd.Timestamp(event.predicted_time))
+        if key not in states:
+            raise ValueError(f"No FutureState for bottleneck at {key}")
+        state = states[key]
+        baseline = dict(r1_baseline) if state.location == "R1" else {"demand": state.demand}
+        baseline["amr_available"] = current_amr.get(state.location, state.amr_available)
+        forecast = points.get(key[1]) if state.location == "R1" else None
+        for cause in diagnose_causes(state, baseline=baseline, forecast=forecast,
+                                     config=config, known_events=known_events):
+            cause.evidence = dict(cause.evidence, location=state.location,
+                                  predicted_time=state.timestamp.isoformat())
+            found.setdefault((state.location, cause.cause_type), cause)
+    return list(found.values())

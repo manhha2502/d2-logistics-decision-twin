@@ -8,7 +8,7 @@ from src.common.schemas import (
     Scenario,
     SimulationResult,
 )
-from src.evaluation.constraints import apply_dynamic_constraints
+from src.evaluation.constraints import apply_dynamic_constraints, load_dynamic_constraints_config
 from src.evaluation.kpi_compare import compare_kpi_vs_baseline
 from src.evaluation.pareto import filter_pareto_front
 from src.evaluation.robustness import rank_scenarios, evaluate_robustness
@@ -94,6 +94,18 @@ def build_decision_package(
         "amr_reassigned": False,
         "warnings": [],
     }
+    limits = load_dynamic_constraints_config(config_path)
+    if recommended_res.late_delivery_count > limits["max_late_delivery_count"]:
+        side_effects["warnings"].append(
+            f"Residual late deliveries: {recommended_res.late_delivery_count} "
+            f"(S0: {baseline_res.late_delivery_count}; limit: {limits['max_late_delivery_count']})."
+        )
+    overloaded = [amr for amr, util in recommended_res.amr_utilization.items()
+                  if util > limits["max_amr_utilization"]]
+    if overloaded:
+        side_effects["warnings"].append(
+            "Residual AMR utilization above configured limit: " + ", ".join(overloaded)
+        )
 
     # Ghi nhận thông tin timing (start/duration) của các action được đề xuất
     side_effects["execution_timing"] = [

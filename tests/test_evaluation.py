@@ -58,6 +58,24 @@ def test_secondary_bottleneck_rejected_by_dynamic_constraints():
     assert "S1" in rejected
 
 
+def test_existing_baseline_congestion_does_not_reject_an_improving_action():
+    baseline = create_mock_sim_result("S0", late=14)
+    baseline.amr_utilization = {"AMR01": 1.0, "AMR02": 1.0}
+    improved = create_mock_sim_result("S1", late=9)
+    improved.amr_utilization = {"AMR01": 1.0, "AMR02": 1.0, "AMR03": 0.8}
+    worse = create_mock_sim_result("S2", late=15)
+    worse.amr_utilization = {"AMR01": 1.0, "AMR02": 1.0}
+    overloaded = create_mock_sim_result("S3", late=9)
+    overloaded.amr_utilization = {"AMR01": 1.0, "AMR02": 1.0, "AMR03": 1.0}
+    scenarios = [Scenario(name, [], []) for name in ("S0", "S1", "S2", "S3")]
+    valid, rejected = apply_dynamic_constraints(
+        scenarios, {"S0": baseline, "S1": improved, "S2": worse, "S3": overloaded}
+    )
+    assert [scenario.scenario_id for scenario in valid] == ["S0", "S1"]
+    assert any("SEVERE_LATE_DELIVERY" in reason for reason in rejected["S2"])
+    assert any("UNACCEPTABLE_RESOURCE_OVERLOAD" in reason for reason in rejected["S3"])
+
+
 def test_pareto_filtering_removes_dominated_scenario():
     """Test 7: Thuật toán Pareto loại bỏ kịch bản bị dominated chính xác."""
     # S1 tốt hơn S2 ở mọi mặt: waiting thấp hơn, throughput cao hơn, service cao hơn, disruption thấp hơn

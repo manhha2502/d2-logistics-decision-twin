@@ -6,8 +6,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from dataclasses import asdict
 from datetime import datetime
+import json
 import pandas as pd
 import streamlit as st
 from app.theme import initialize_theme
@@ -91,6 +91,20 @@ def scenario_table(result):
     return pd.DataFrame(rows)
 
 
+def simulation_kpi_table(simulations):
+    """Display scalar SimPy KPIs without nested Arrow-incompatible metadata."""
+    fields = ("scenario_id", "avg_waiting_time", "max_waiting_time", "avg_queue",
+              "max_queue", "late_delivery_count", "throughput", "service_level",
+              "starvation_minutes", "unmet_consumption", "buffer_overflow",
+              "secondary_bottleneck")
+    rows = []
+    for simulation in simulations:
+        row = {field: getattr(simulation, field) for field in fields}
+        row["amr_utilization"] = json.dumps(simulation.amr_utilization, sort_keys=True)
+        rows.append(row)
+    return pd.DataFrame(rows)
+
+
 def render_recommendation(result, config):
     require_result(result)
     package = result.decision_package
@@ -106,8 +120,7 @@ def render_recommendation(result, config):
     b = package.bottleneck
     st.write(f"{b.location} · {b.predicted_time} · {b.severity} · Lead time {b.lead_time_min} phút · Risk {b.risk_score:.1f}")
     st.subheader("KPI: S0 → Recommended")
-    st.dataframe(pd.DataFrame([{"Scenario": "S0", **asdict(package.baseline_result)},
-                              {"Scenario": scenario.scenario_id, **asdict(package.recommended_result)}]), hide_index=True)
+    st.dataframe(simulation_kpi_table([package.baseline_result, package.recommended_result]), hide_index=True)
     st.write("Mức cải thiện so với S0")
     st.json(package.kpi_improvement)
     st.write("Tác dụng phụ và thời gian thực hiện")

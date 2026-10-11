@@ -6,13 +6,10 @@ forecast 60 phút theo khoảng 15 phút. Operator là người quyết định 
 
 ## Trạng thái triển khai
 
-Phần Hạ: config loader, orchestration, dashboard 4 trang, audit quyết định và
-integration tests đã được triển khai. Phần Quân có action/scenario/evaluation/recommendation.
-Tại thời điểm tích hợp, các file forecast/data (Dương), logistics/bottleneck (Hà),
-simulation (Phú), `scripts/train_forecast.py` và `config/thresholds.yaml` còn rỗng.
-Dashboard hiển thị rõ API/config còn thiếu; chưa thể chạy demo end-to-end thật cho
-đến khi các module này được triển khai. Không có dữ liệu KPI hay recommendation
-giả thay thế khi chạy app. Mock chỉ nằm trong `tests/test_pipeline.py`.
+Forecast, future logistics state, bottleneck/cause diagnosis, SimPy what-if,
+evaluation và dashboard đã được kết nối thành pipeline thật. Bộ test có cả
+integration test dùng test doubles và acceptance test chạy toàn bộ module thật.
+Không có dữ liệu KPI hay recommendation giả thay thế khi chạy app.
 
 ## Setup
 
@@ -41,7 +38,7 @@ Config loader từ chối runtime path nằm ngoài repo hoặc trỏ vào `vali
 
 ## Train, test, dashboard
 
-Khi các module upstream đã triển khai, chạy theo thứ tự:
+Chạy theo thứ tự:
 
 ```powershell
 python scripts/train_forecast.py
@@ -49,8 +46,9 @@ python -m pytest -q
 python -m streamlit run app/Home.py
 ```
 
-Hiện `train_forecast.py` rỗng: lệnh có thể thoát thành công nhưng **không train model**.
-Không xem exit code đó là bằng chứng model đã sẵn sàng.
+Lệnh train tạo `artifacts/models/forecast_models.joblib` và in MAE, WAPE,
+Pinball Loss, Quantile Coverage trên phần holdout theo thời gian. Nếu chưa có
+model artifact, forecast service dùng baseline từ history.
 
 Kiểm thử riêng phần tích hợp:
 
@@ -58,23 +56,33 @@ Kiểm thử riêng phần tích hợp:
 python -m pytest tests/test_pipeline.py -q
 ```
 
-Tests dùng test doubles cho Dương/Hà/Phú và chạy engine Quân thật. Chúng xác minh
+`tests/test_pipeline.py` dùng test doubles cho Dương/Hà/Phú và chạy engine Quân thật. Chúng xác minh
 thứ tự ghép nối, Normal không chạy SimPy, Demand Spike, AMR Failure có Reassign,
 Multi-cause có combined scenarios, secondary bottleneck bị loại, seed/maintenance,
 schema lỗi, audit CSV, lưu artifacts và không đọc validation labels.
-Các tests này chưa xác minh chất lượng forecast hoặc tính đúng đắn mô hình SimPy.
-
-Kết quả kiểm tra phần Hạ ngày 2026-10-10: **38 tests passed** trên Python 3.12.14,
-bao gồm AppTest cho Home và 4 trang, thao tác APPROVE/MODIFY/RUN AGAIN,
-kiểm tra cú pháp Python và `git diff --check`. Streamlit khởi động thành công,
-`/_stcore/health` trả `ok`. Trong Codex Windows sandbox, AppTest có thể bị chặn
-socket nội bộ của asyncio; cần chạy tests với quyền cho phép localhost.
-Đây chưa phải kết quả demo end-to-end với module thật của Dương/Hà/Phú.
+`tests/test_real_pipeline.py` chạy forecast, future state, detection, diagnosis,
+SimPy, evaluation, robustness và recommendation thật trên snapshot mặc định;
+đồng thời bấm nút Run qua Streamlit AppTest. Các module còn có unit tests riêng.
 
 Trong app, chọn decision mode, snapshot time, seed và bấm **Run Decision Twin**.
 Mặc định là replay snapshot `2026-10-08 14:00:00`, khớp current CSV và
 production plan bắt đầu +15 phút. Không tự lấy giờ máy để dự báo trên snapshot cũ.
 Muốn đổi snapshot time phải cập nhật current state và known-future input tương ứng.
+
+## Chứng minh 5 ca demo
+
+```powershell
+python scripts/demo_cases.py
+python -m pytest tests/test_demo_cases.py tests/test_real_pipeline.py -q
+```
+
+`config/demo_cases.yaml` khai báo các thay đổi **đầu vào synthetic**: ca Normal
+không có maintenance và có thêm AMR cho R1; Demand Spike tăng nhu cầu dự báo bằng
+hệ số stress 1.5; Multi-cause hạ buffer MAT_A; Secondary Bottleneck tăng tải
+R2. AMR Failure dùng nguyên snapshot PEAK v2. Script chạy forecast model, future
+state, diagnosis, SimPy và decision engine thật cho từng ca; không chứa KPI hay
+phương án được gán sẵn. Các ca stress chỉ dùng để chứng minh hành vi prototype,
+không phải dự báo vận hành của snapshot mặc định.
 
 ## Kiến trúc và interface tích hợp
 
@@ -98,11 +106,8 @@ bottlenecks, causes, scenarios, simulation outputs, rejection reasons, ranks,
 robustness và decision package. Normal có `decision_package=None` và S0, không
 tạo SimulationResult giả. Chưa có can thiệp an toàn thì giữ S0 và báo rõ.
 
-Shared dataclasses trong `src/common/schemas.py` được giữ nguyên.
-Các adapter dưới đây là điểm nối Hạ dành cho module còn rỗng; cần đối chiếu với
-implementation của chủ module khi merge. Hạ không tự sửa public interface của
-module khác. Signature forecast/future state/simulation bám kế hoạch; signature
-detector/diagnosis và cấu trúc `future_condition` được ghi rõ để chủ module nối vào:
+Shared dataclasses trong `src/common/schemas.py` được giữ nguyên. Các interface
+đang được pipeline sử dụng:
 
 ```python
 # Dương — src/forecast/service.py
@@ -111,9 +116,10 @@ forecast_future_drivers(now, horizon_min=60, interval_min=15) -> list[ForecastPo
 # Hà — src/logistics/future_state.py
 build_future_states(current_state, forecasts, known_events, config) -> list[FutureState]
 # Hà — src/bottleneck/detector.py
-detect_bottlenecks(future_states, config) -> list[BottleneckEvent]
-# Hà — src/bottleneck/cause_diagnosis.py (adapter được Hạ dự kiến)
-diagnose_causes(bottlenecks, current_state, forecasts, known_events, config) -> list[Cause]
+detect_bottlenecks(future_states, now=now, thresholds=config["thresholds"]) -> list[BottleneckEvent]
+# Hà — src/bottleneck/cause_diagnosis.py
+diagnose_bottlenecks(bottlenecks, future_states, current_state, forecasts,
+                     known_events, config) -> list[Cause]
 
 # Phú — src/simulation/simulator.py
 run_simulation(current_state, future_condition, scenario, seed=42) -> SimulationResult
@@ -152,6 +158,15 @@ Quân được gọi bằng interface có sẵn: `generate_scenarios(...)`,
 `build_decision_package(...)`. KPI comparison do recommendation builder thực hiện.
 Dashboard có dropdown `balanced`, `service_priority`, `low_disruption`.
 Robustness chưa chạy cho scenario ngoài top được ghi “Not tested”.
+Dynamic constraints so late delivery và AMR utilization của phương án với S0:
+phương án không bị loại chỉ vì tình trạng quá tải đã tồn tại ở S0, nhưng bị loại
+nếu làm các chỉ số này xấu thêm vượt ngưỡng YAML. Secondary bottleneck, starvation,
+unmet consumption và overflow vẫn được kiểm tra trực tiếp.
+
+Snapshot mặc định có maintenance của AMR03. Với model đã train, pipeline phát hiện
+bottleneck R1, chẩn đoán `AMR_AVAILABILITY_DROP`, mô phỏng S0/S1 và đề xuất S1
+`REASSIGN_AMR`; KPI và robustness đến từ SimPy. Đây là dữ liệu synthetic, không
+phải khuyến nghị vận hành thực tế.
 
 ## Dashboard và artifacts
 

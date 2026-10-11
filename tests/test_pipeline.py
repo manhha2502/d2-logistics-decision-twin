@@ -17,7 +17,7 @@ from src.common.config import load_config, ConfigError
 from src.common.schemas import (QuantileValue, ForecastPoint, FutureState,
                                 BottleneckEvent, Cause, SimulationResult)
 from src.orchestration.pipeline import (_execute, run_pipeline, PipelineError,
-    module_readiness, save_run, record_operator_decision)
+    module_readiness, save_run, record_operator_decision, _relative_secondary_bottlenecks)
 
 
 @pytest.fixture
@@ -35,7 +35,7 @@ def services(case="demand", secondary=False):
         return [FutureState(f.timestamp, route, f.demand.p50, 7, 8/7, 7,
                             1, 2, 3, .8, 10, 10, 0, 0, 2)
                 for f in forecasts for route in ("R1", "R2")]
-    def bottleneck(states, config):
+    def bottleneck(states, now=None, thresholds=None):
         if case == "normal":
             return []
         return [BottleneckEvent("R1", states[0].timestamp, 15, "HIGH", 75,
@@ -85,6 +85,18 @@ def test_secondary_bottleneck_never_recommended(config):
     assert result.decision_package.recommended_scenario.scenario_id == "S0"
     assert result.rejected_scenarios
     assert all("CRITICAL_SECONDARY_BOTTLENECK" in reasons for reasons in result.rejected_scenarios.values())
+
+
+def test_pipeline_secondary_flag_is_relative_to_s0(config):
+    def sim(name, utilization, wait):
+        return SimulationResult(name, 0, 0, 0, 0, 0, 0, 100, 0, 0, 0, {}, True,
+            {"r2_critical": True, "r2_utilization": utilization, "r2_avg_wait": wait})
+    outputs = {"S0": sim("S0", 0.90, 21), "S1": sim("S1", 0.90, 21),
+               "S2": sim("S2", 0.98, 25)}
+    _relative_secondary_bottlenecks(outputs, config["thresholds"])
+    assert not outputs["S0"].secondary_bottleneck
+    assert not outputs["S1"].secondary_bottleneck
+    assert outputs["S2"].secondary_bottleneck
 
 
 def test_seed_conditions_and_maintenance_preserved(config):
@@ -191,14 +203,14 @@ def test_config_from_other_working_directory(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     config = load_config()
     assert config["paths"]["current_state"].is_file()
-    assert config["readiness_warnings"]  # current upstream thresholds are empty
+    assert config["readiness_warnings"] == []
 
 
 def test_critical_bottleneck_precedes_higher_risk(config):
     deps = services()
     original = deps["bottleneck"].side_effect
-    def detect(*args):
-        high = original(*args)[0]
+    def detect(*args, **kwargs):
+        high = original(*args, **kwargs)[0]
         return [high, replace(high, severity="Critical", risk_score=40, location="R2")]
     deps["bottleneck"].side_effect = detect
     result = _execute(config, services=deps)
@@ -226,8 +238,10 @@ def test_dashboard_pages_render_with_test_run(config, page):
     assert not app.exception
 
 
-def test_dashboard_missing_modules_is_visible():
+def test_dashboard_missing_modules_is_visible(monkeypatch):
     from streamlit.testing.v1 import AppTest
+    monkeypatch.setattr("src.orchestration.pipeline.module_readiness",
+                        lambda: ["forecast: unavailable"])
     root = Path(__file__).resolve().parents[1]
     app = AppTest.from_file(str(root / "app/Home.py"), default_timeout=20).run()
     assert not app.exception
@@ -255,5 +269,7 @@ def test_dashboard_operator_buttons_write_audit(config, monkeypatch):
     assert path.is_file()
     with path.open(encoding="utf-8", newline="") as handle:
         assert list(csv.DictReader(handle))[0]["decision"] == "APPROVE"
+    previous_run = app.session_state["pipeline_result"].run_id
     next(button for button in app.button if button.label == "RUN AGAIN").click().run()
-    assert "pipeline_result" not in app.session_state
+    assert not app.exception
+    assert app.session_state["pipeline_result"].run_id != previous_run

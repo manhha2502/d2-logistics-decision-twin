@@ -74,6 +74,14 @@ def load_config(root=None):
             raise ConfigError(f"decision_modes.yaml missing mapping: {key}")
     if system["default_decision_mode"] not in result["decision"]["decision_modes"]:
         raise ConfigError("Unknown default_decision_mode")
+    dynamic = result["decision"]["dynamic_constraints"]
+    for key in ("max_buffer_overflow", "max_starvation_minutes", "max_unmet_consumption",
+                "max_late_delivery_count", "max_amr_utilization"):
+        value = dynamic.get(key)
+        if not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0:
+            raise ConfigError(f"Invalid dynamic constraint: {key}")
+    if type(dynamic.get("reject_secondary_bottleneck")) is not bool:
+        raise ConfigError("Invalid dynamic constraint: reject_secondary_bottleneck")
     for mode, info in result["decision"]["decision_modes"].items():
         weights = info.get("weights") if isinstance(info, dict) else None
         if not isinstance(weights, dict) or not weights or any(
@@ -88,4 +96,11 @@ def load_config(root=None):
         raise ConfigError("robustness.adverse_reduce_amr_count must be a nonnegative integer")
     if type(robust.get("enable_adverse_amr_reduction", False)) is not bool:
         raise ConfigError("robustness.enable_adverse_amr_reduction must be boolean")
+    rating = robust.get("rating_max_adverse_drop_pct")
+    if (not isinstance(rating, dict) or
+        any(not isinstance(rating.get(key), (int, float)) or
+            not math.isfinite(rating[key]) or rating[key] < 0
+            for key in ("robust", "moderate")) or
+        rating["robust"] > rating["moderate"]):
+        raise ConfigError("Invalid robustness.rating_max_adverse_drop_pct")
     return result

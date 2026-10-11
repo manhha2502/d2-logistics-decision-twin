@@ -3,7 +3,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import pandas as pd
 import streamlit as st
-from app.Home import bootstrap, require_result, scenario_table
+from app.Home import bootstrap, require_result, scenario_table, simulation_kpi_table
 
 result, _ = bootstrap("Scenario Comparison")
 require_result(result)
@@ -19,6 +19,5 @@ if result.kpi_comparison:
         st.dataframe(pd.DataFrame.from_dict(result.kpi_comparison, orient="index"))
 for condition, results in result.results_by_condition.items():
     with st.expander(f"{condition} · simulation results"):
-        from dataclasses import asdict
-        st.dataframe(pd.DataFrame([asdict(r) for r in results.values()]), hide_index=True)
+        st.dataframe(simulation_kpi_table(results.values()), hide_index=True)
 st.caption("Not tested = phương án không nằm trong top robustness; không suy đoán kết quả P10/P90.")

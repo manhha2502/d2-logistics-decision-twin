@@ -16,8 +16,8 @@ Rules enforced
 * S0 = Scenario with no actions.  Simulator never creates routes.
 * `secondary_bottleneck` = R2 became critical (utilisation or waiting above the
   thresholds) where it was not critical in S0 (run_scenarios) — see _r2_state().
-  run_simulation alone reports the absolute flag (R2 critical); the pipeline calls it
-  per scenario and constraints.py skips S0, so the flag works without a baseline.
+  run_simulation alone reports the absolute flag (R2 critical); the pipeline
+  compares each result with S0 before applying dynamic constraints.
 """
 from __future__ import annotations
 
@@ -190,9 +190,7 @@ def run_simulation(
         if isinstance(future_condition, dict) and "config" in future_condition:
             cfg_raw = future_condition["config"]
             thr_cfg = cfg_raw.get("thresholds") if isinstance(cfg_raw, dict) else None
-            if thr_cfg is None:
-                thr_cfg = _load_configs()[1]
-    else:
+    if thr_cfg is None:
         thr_cfg = _load_configs()[1]
     sys_cfg = _compat_sys_cfg(sys_cfg)
     condition_mode = _resolve_condition_mode(condition_mode, future_condition)
