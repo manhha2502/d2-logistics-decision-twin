@@ -30,7 +30,7 @@ UPSTREAM = {
     "forecast": ("src.forecast.service", "forecast_future_drivers"),
     "future_state": ("src.logistics.future_state", "build_future_states"),
     "bottleneck": ("src.bottleneck.detector", "detect_bottlenecks"),
-    "diagnose": ("src.bottleneck.cause_diagnosis", "diagnose_causes"),
+    "diagnose": ("src.bottleneck.cause_diagnosis", "diagnose_bottlenecks"),
     "simulate": ("src.simulation.simulator", "run_simulation"),
 }
 
@@ -112,6 +112,29 @@ def _read_inputs(config):
     return current, events, plan
 
 
+def _relative_secondary_bottlenecks(outputs, thresholds):
+    """Flag new or worsened R2 congestion compared with S0 for this condition."""
+    baseline = outputs["S0"]
+    base = baseline.extra_metrics
+    needed = {"r2_critical", "r2_utilization", "r2_avg_wait"}
+    if not needed.issubset(base):
+        return outputs
+    baseline.secondary_bottleneck = False
+    sim_thresholds = thresholds["simulation"]
+    worsening = float(sim_thresholds["secondary_bottleneck_worsening"])
+    wait_limit = float(sim_thresholds["secondary_bottleneck_wait_min"])
+    for scenario_id, output in outputs.items():
+        if scenario_id == "S0" or not needed.issubset(output.extra_metrics):
+            continue
+        r2 = output.extra_metrics
+        output.secondary_bottleneck = bool(r2["r2_critical"] and (
+            not base["r2_critical"]
+            or r2["r2_utilization"] > base["r2_utilization"] + worsening
+            or r2["r2_avg_wait"] > base["r2_avg_wait"] + worsening * wait_limit
+        ))
+    return outputs
+
+
 def run_pipeline(decision_mode="balanced", now=None, seed=42):
     """Run real modules. Default now is the configured data snapshot time."""
     config = _call("configuration", load_config)
@@ -162,13 +185,15 @@ def _execute(config, decision_mode="balanced", now=None, seed=42, *, services=No
         (route, stamp) for route in ("R1", "R2") for stamp in expected_times
     }:
         raise PipelineError("Future states must cover R1/R2 at all four forecast timestamps")
-    events_found = _call("bottleneck", service("bottleneck"), states, context)
+    events_found = _call("bottleneck", service("bottleneck"), states, now=now,
+                         thresholds=context["thresholds"])
     result.bottlenecks = _schema_list("bottleneck", events_found, BottleneckEvent)
     if not events_found:
         result.status = "No intervention required"
         result.scenarios = [Scenario("S0", [], [])]
         return result
-    causes = _call("cause diagnosis", service("diagnose"), events_found, current, forecasts, events, context)
+    causes = _call("cause diagnosis", service("diagnose"), events_found, states,
+                   current, forecasts, events, context)
     result.causes = _schema_list("cause diagnosis", causes, Cause)
     scenarios = _call("scenario generation", generate_scenarios, causes,
                       current_state_df=current, master_dir=config["paths"]["master_dir"],
@@ -208,7 +233,7 @@ def _execute(config, decision_mode="balanced", now=None, seed=42, *, services=No
             if any(not isinstance(v, (int, float)) or not math.isfinite(v) or v < 0 for v in metrics):
                 raise PipelineError(f"Invalid numeric simulation metrics for {scenario.scenario_id}")
             outputs[scenario.scenario_id] = output
-        return outputs
+        return _relative_secondary_bottlenecks(outputs, context["thresholds"])
     result.simulation_results = simulate_condition("expected", result.scenarios)
     decision_path = config["config_paths"]["decision"]
     valid, rejected = _call("dynamic constraints", apply_dynamic_constraints,
@@ -238,7 +263,12 @@ def _execute(config, decision_mode="balanced", now=None, seed=42, *, services=No
     chosen = result.decision_package.recommended_scenario.scenario_id
     if chosen in result.rejected_scenarios:
         raise PipelineError("Recommendation selected a rejected scenario")
-    result.status = "Recommendation ready" if chosen != "S0" else "No safe intervention selected"
+    if chosen != "S0":
+        result.status = "Recommendation ready"
+    elif any(scenario_id != "S0" for scenario_id, _ in result.ranked_scenarios):
+        result.status = "No intervention preferred"
+    else:
+        result.status = "No safe intervention selected"
     return result
 
 

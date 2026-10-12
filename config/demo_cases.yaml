@@ -1,0 +1,16 @@
+# Explicit synthetic input stresses for acceptance demos. No KPI or decision output.
+cases:
+  normal:
+    clear_known_events: true
+    move_amr_to_r1: AMR04
+    clear_r1_queue: true
+  demand_spike:
+    clear_known_events: true
+    move_amr_to_r1: AMR04
+    clear_r1_queue: true
+    forecast_demand_multiplier: 1.5
+  amr_failure: {}
+  multi_cause:
+    buffer_level_mat_a: 1.0
+  secondary_bottleneck:
+    r2_simulated_demand_totes_per_window: 7.0

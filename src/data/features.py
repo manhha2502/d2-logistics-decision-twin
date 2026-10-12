@@ -110,9 +110,9 @@ def extract_features(df: pd.DataFrame) -> pd.DataFrame:
     else:
         feat["r1_amr_available"] = 3
 
-    # Backfill earliest initial rows where shift created NaNs
-    feat = feat.bfill().ffill()
-
+    # Keep initial lag values missing. Backfilling would copy observations from
+    # later timestamps into earlier training rows (future leakage); the training
+    # dataset builder drops those initial rows instead.
     return feat[FEATURE_COLUMNS]
 
 

@@ -121,6 +121,10 @@ def evaluate_robustness(
     - expected (P50)
     - adverse (P90)
     """
+    with Path(config_path).open(encoding="utf-8") as stream:
+        rating_limits = yaml.safe_load(stream)["robustness"]["rating_max_adverse_drop_pct"]
+    robust_limit = float(rating_limits["robust"])
+    moderate_limit = float(rating_limits["moderate"])
     robustness_summary: dict[str, Any] = {}
 
     for sc in top_scenarios:
@@ -136,9 +140,9 @@ def evaluate_robustness(
         # Độ suy giảm chất lượng dịch vụ ở điều kiện bất lợi nhất (Adverse Drop)
         drop_pct = ((srv_exp - srv_adv) / (srv_exp + 1e-6)) * 100.0
 
-        if drop_pct <= 5.0:
+        if drop_pct <= robust_limit:
             rating = "ROBUST"
-        elif drop_pct <= 15.0:
+        elif drop_pct <= moderate_limit:
             rating = "MODERATE"
         else:
             rating = "SENSITIVE"

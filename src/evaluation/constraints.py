@@ -11,13 +11,7 @@ def load_dynamic_constraints_config(config_path: Path | str = DEFAULT_DECISION_C
     """Tải cấu hình dynamic constraints từ YAML."""
     path = Path(config_path)
     if not path.is_file():
-        return {
-            "max_buffer_overflow": 0.0,
-            "max_starvation_minutes": 0.0,
-            "max_unmet_consumption": 0.0,
-            "reject_secondary_bottleneck": True,
-            "secondary_bottleneck_penalty": 0.50,
-        }
+        raise FileNotFoundError(f"Decision configuration not found: {path}")
     with open(path, "r", encoding="utf-8") as f:
         data = yaml.safe_load(f)
     return data.get("dynamic_constraints", {})
@@ -26,6 +20,7 @@ def load_dynamic_constraints_config(config_path: Path | str = DEFAULT_DECISION_C
 def check_dynamic_constraints(
     sim_result: SimulationResult,
     config: dict[str, Any] | None = None,
+    baseline_result: SimulationResult | None = None,
 ) -> tuple[bool, list[str]]:
     """
     Kiểm tra một kết quả mô phỏng SimPy có vi phạm các ràng buộc động nghiêm trọng không:
@@ -37,12 +32,12 @@ def check_dynamic_constraints(
         config = load_dynamic_constraints_config()
 
     reasons: list[str] = []
-    max_overflow = float(config.get("max_buffer_overflow", 0.0))
-    max_starv = float(config.get("max_starvation_minutes", 0.0))
-    max_unmet = float(config.get("max_unmet_consumption", 0.0))
-    reject_sec = bool(config.get("reject_secondary_bottleneck", True))
-    max_late = float(config.get("max_late_delivery_count", 5))
-    max_util = float(config.get("max_amr_utilization", 0.95))
+    max_overflow = float(config["max_buffer_overflow"])
+    max_starv = float(config["max_starvation_minutes"])
+    max_unmet = float(config["max_unmet_consumption"])
+    reject_sec = bool(config["reject_secondary_bottleneck"])
+    max_late = float(config["max_late_delivery_count"])
+    max_util = float(config["max_amr_utilization"])
 
     if sim_result.buffer_overflow > max_overflow:
         reasons.append(f"BUFFER_OVERFLOW: {sim_result.buffer_overflow:.2f} > {max_overflow}")
@@ -56,12 +51,17 @@ def check_dynamic_constraints(
     if reject_sec and sim_result.secondary_bottleneck:
         reasons.append("CRITICAL_SECONDARY_BOTTLENECK")
 
-    if sim_result.late_delivery_count > max_late:
+    # Existing congestion in S0 is not caused by an intervention. Reject an
+    # intervention when it makes an already severe late count worse.
+    if sim_result.late_delivery_count > max_late and (
+        baseline_result is None or sim_result.late_delivery_count > baseline_result.late_delivery_count
+    ):
         reasons.append(f"SEVERE_LATE_DELIVERY: {sim_result.late_delivery_count} > {max_late}")
 
     if hasattr(sim_result, "amr_utilization") and isinstance(sim_result.amr_utilization, dict):
         for amr_id, util in sim_result.amr_utilization.items():
-            if util > max_util:
+            baseline_util = baseline_result.amr_utilization.get(amr_id, 0.0) if baseline_result else 0.0
+            if util > max_util and (baseline_result is None or util > baseline_util + 1e-9):
                 reasons.append(f"UNACCEPTABLE_RESOURCE_OVERLOAD: {amr_id} utilization {util:.2f} > {max_util}")
 
     return len(reasons) == 0, reasons
@@ -93,7 +93,7 @@ def apply_dynamic_constraints(
             rejected[sc.scenario_id] = ["MISSING_SIMULATION_RESULT"]
             continue
 
-        is_passed, reasons = check_dynamic_constraints(res, cfg)
+        is_passed, reasons = check_dynamic_constraints(res, cfg, sim_results.get("S0"))
         if is_passed:
             valid_scenarios.append(sc)
         else:

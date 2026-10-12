@@ -27,6 +27,7 @@ artifacts/forecasts/*
 artifacts/states/*
 artifacts/simulations/*
 artifacts/recommendations/*
+artifacts/operator_decisions.csv
 
 # Keep artifact directories
 !artifacts/models/.gitkeep

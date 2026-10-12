@@ -99,6 +99,13 @@ def test_features_no_future_leakage(sample_raw_df):
     pd.testing.assert_frame_equal(feats_original.iloc[:10], feats_manipulated.iloc[:10])
 
 
+def test_initial_feature_rows_do_not_backfill_from_future(sample_raw_df):
+    features = extract_features(sample_raw_df)
+    assert pd.isna(features.loc[0, "demand_lag_1"])
+    assert pd.isna(features.loc[0, "travel_loaded_lag_1"])
+    assert features.loc[1, "demand_lag_1"] == sample_raw_df.loc[0, "r1_demand_totes"]
+
+
 def test_features_dataset_generation(sample_raw_df):
     """Verify build_training_dataset returns matching X and y shapes."""
     X, y = build_training_dataset(sample_raw_df)

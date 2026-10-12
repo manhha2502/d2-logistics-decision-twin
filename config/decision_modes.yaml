@@ -43,6 +43,9 @@ dynamic_constraints:
 
 robustness:
   top_k_scenarios: 3
+  rating_max_adverse_drop_pct:
+    robust: 5.0
+    moderate: 15.0
   test_conditions:
     - "favorable"  # P10
     - "expected"   # P50
