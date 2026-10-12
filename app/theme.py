@@ -94,8 +94,11 @@ def get_layout_template() -> dict:
         font=dict(family=FONT_FAMILY, size=FONT_SIZE_BASE, color=COLORS["text_primary"]),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=10, r=15, t=40, b=10),
+        margin=dict(l=75, r=30, t=65, b=85),
         legend=dict(
+            orientation="h",
+            x=0,
+            y=-0.28,
             bgcolor="rgba(255,255,255,0.9)",
             bordercolor=COLORS["grid"],
             borderwidth=1,
@@ -196,9 +199,9 @@ div[data-baseweb="tab-panel"] {
 }
 [data-testid="stSidebar"] .stSelectbox div[data-baseweb="select"] > div,
 [data-testid="stSidebar"] .stMultiSelect div[data-baseweb="select"] > div {
-    background-color: #FFFFFF !important;
-    border: 1px solid #CBD5E1 !important;
-    border-radius: 8px !important;
+    background-color: #F8FAFC !important;
+    border: 1px solid #D9E2EE !important;
+    border-radius: 10px !important;
     color: #0F172A !important;
 }
 [data-testid="stSidebar"] hr {
@@ -743,7 +746,57 @@ DASHBOARD_CSS = """
     background: #EFF6FF; border-left: 3px solid #1D4ED8;
 }
 [data-testid="stSidebar"] [data-testid="stForm"] {
-    background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px;
+    background: #FFFFFF;
+    border: 1px solid #DBE4F0;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(15,23,42,.045);
+}
+[data-testid="stSidebar"] [data-testid="stForm"] [data-testid="stWidgetLabel"] {
+    margin-bottom: 5px;
+}
+[data-testid="stSidebar"] [data-testid="stForm"] [data-baseweb="select"] > div,
+[data-testid="stSidebar"] [data-testid="stForm"] [data-baseweb="input"] {
+    min-height: 44px;
+    background: #F8FAFC !important;
+    border: 1px solid #D9E2EE !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+[data-testid="stSidebar"] [data-testid="stForm"] [data-baseweb="input"] input {
+    color: #0F172A !important;
+    background: transparent !important;
+    font-weight: 500;
+}
+[data-testid="stSidebar"] [data-testid="stForm"] [data-baseweb="select"]:focus-within > div,
+[data-testid="stSidebar"] [data-testid="stForm"] [data-baseweb="input"]:focus-within {
+    border-color: #2563EB !important;
+    box-shadow: 0 0 0 3px rgba(37,99,235,.12) !important;
+}
+[data-testid="stSidebar"] [data-testid="stFormSubmitButton"] button {
+    width: 100%; min-height: 44px; border-radius: 10px;
+    transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+[data-testid="stSidebar"] [data-testid="stFormSubmitButton"] button[kind="primary"] {
+    background: #1D4ED8 !important;
+    border-color: #1D4ED8 !important;
+    box-shadow: 0 4px 10px rgba(29,78,216,.18);
+}
+[data-testid="stSidebar"] [data-testid="stFormSubmitButton"] button[kind="primary"]:hover {
+    background: #1E40AF !important;
+    border-color: #1E40AF !important;
+}
+[data-testid="stSidebar"] [data-testid="stFormSubmitButton"] button[kind="primary"] * {
+    color: #FFFFFF !important;
+}
+[data-testid="stSidebar"] [data-testid="stFormSubmitButton"] button[kind="secondary"] {
+    background: #FFFFFF;
+    border-color: #CBD5E1;
+    color: #334155;
+}
+[data-testid="stSidebar"] [data-testid="stFormSubmitButton"] button[kind="secondary"]:hover {
+    background: #F1F5F9;
+    border-color: #94A3B8;
 }
 [data-testid="stMetric"], [data-testid="stPlotlyChart"],
 [data-testid="stVerticalBlockBorderWrapper"] > div {
@@ -753,7 +806,7 @@ DASHBOARD_CSS = """
 [data-testid="stMetric"] { padding: 14px 16px; }
 [data-testid="stMetricLabel"] { color: #64748B; font-weight: 600; }
 [data-testid="stMetricValue"] { color: #0F172A; font-weight: 800; }
-[data-testid="stPlotlyChart"] { padding: 12px; overflow: hidden; }
+[data-testid="stPlotlyChart"] { padding: 12px; }
 [data-testid="stDataFrame"] { border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; }
 [data-testid="stButton"] button, [data-testid="stFormSubmitButton"] button {
     border-radius: 8px; font-weight: 600; min-height: 40px;
@@ -764,11 +817,22 @@ button[kind="primary"], [data-testid="stSidebar"] button[kind="primary"] * {
 button[kind="primary"]:hover { background-color: #2563EB; border-color: #2563EB; }
 button:focus-visible, a:focus-visible { outline: 3px solid #F59E0B !important; outline-offset: 3px; }
 [data-testid="stPageLink"] a {
-    background: #FFFFFF; border: 1px solid #E2E8F0;
-    border-radius: 12px; padding: 14px 18px; margin-bottom: 8px;
-    font-weight: 600; color: #1D4ED8;
+    display: flex; align-items: center; width: 100%; min-height: 76px;
+    background: #FFFFFF; border: 1px solid #DBE4F0;
+    border-radius: 14px; padding: 18px 20px; margin-bottom: 8px;
+    box-shadow: 0 4px 12px rgba(15,23,42,.035);
+    font-weight: 600; color: #1E3A8A;
+    transition: border-color .15s ease, background-color .15s ease, box-shadow .15s ease, transform .15s ease;
 }
-[data-testid="stPageLink"] a:hover { border-color: #1D4ED8; background: #EFF6FF; }
+[data-testid="stPageLink"] a [data-testid="stIconMaterial"] {
+    color: #2563EB;
+    margin-right: 8px;
+}
+[data-testid="stPageLink"] a:hover {
+    border-color: #93C5FD; background: #F8FBFF;
+    box-shadow: 0 10px 22px rgba(29,78,216,.09);
+    transform: translateY(-2px);
+}
 @media (max-width: 640px) {
     .d2-header { padding: 18px; align-items: flex-start; flex-direction: column; }
     .d2-header .d2-page-label { text-align: left; }
@@ -798,8 +862,8 @@ def initialize_theme(title: str):
         '<div class="d2-header"><div class="d2-brand">'
         '<div class="d2-logo" aria-hidden="true">D2</div><div>'
         f'<h1 class="d2-title">{escape(title)}</h1>'
-        '<p class="d2-subtitle">Logistics Decision Twin · LINE_A</p></div></div>'
-        '<span class="d2-page-label">Forecast · Simulate · Decide</span></div>',
+        '<p class="d2-subtitle">Mô phỏng quyết định logistics · LINE_A</p></div></div>'
+        '<span class="d2-page-label">Dự báo · Mô phỏng · Đề xuất</span></div>',
         unsafe_allow_html=True,
     )
 

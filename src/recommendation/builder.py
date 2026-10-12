@@ -55,15 +55,9 @@ def build_decision_package(
         pareto_scenarios, sim_results, decision_mode=decision_mode, config_path=config_path
     )
 
-    # 5. Chọn kịch bản khuyến nghị tốt nhất
-    recommended_sc: Scenario
-    # Ưu tiên kịch bản can thiệp có điểm cao nhất (nếu có và tốt hơn S0)
-    non_s0_ranked = [item for item in ranked if item[0].scenario_id != "S0"]
-    if non_s0_ranked:
-        recommended_sc = non_s0_ranked[0][0]
-    else:
-        # Nếu không có kịch bản nào khả thi hoặc tốt hơn, khuyến nghị S0 (No Action)
-        recommended_sc = s0_scenario
+    # 5. Chọn kịch bản đứng đầu, kể cả S0. Một can thiệp chỉ nên được đề xuất
+    # khi điểm theo decision mode hiện tại cao hơn phương án giữ nguyên.
+    recommended_sc = ranked[0][0] if ranked else s0_scenario
 
     recommended_res = sim_results[recommended_sc.scenario_id]
 

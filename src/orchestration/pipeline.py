@@ -263,7 +263,12 @@ def _execute(config, decision_mode="balanced", now=None, seed=42, *, services=No
     chosen = result.decision_package.recommended_scenario.scenario_id
     if chosen in result.rejected_scenarios:
         raise PipelineError("Recommendation selected a rejected scenario")
-    result.status = "Recommendation ready" if chosen != "S0" else "No safe intervention selected"
+    if chosen != "S0":
+        result.status = "Recommendation ready"
+    elif any(scenario_id != "S0" for scenario_id, _ in result.ranked_scenarios):
+        result.status = "No intervention preferred"
+    else:
+        result.status = "No safe intervention selected"
     return result
 
 

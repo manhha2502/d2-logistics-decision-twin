@@ -246,10 +246,19 @@ def test_dashboard_missing_modules_is_visible(monkeypatch):
     app = AppTest.from_file(str(root / "app/Home.py"), default_timeout=20).run()
     assert not app.exception
     assert any("forecast" in warning.value for warning in app.warning)
-    next(button for button in app.button if button.label == "Run Decision Twin").click().run()
+    next(button for button in app.button if button.label == "Chạy phân tích").click().run()
     assert not app.exception
     assert any("Chưa thể chạy pipeline thật" in error.value for error in app.error)
     assert "pipeline_result" not in app.session_state
+
+
+def test_vietnamese_navigation_opens_recommendation_page():
+    from streamlit.testing.v1 import AppTest
+    root = Path(__file__).resolve().parents[1]
+    app = AppTest.from_file(str(root / "app/Home.py"), default_timeout=20).run()
+    app.switch_page("pages/4_Recommendation.py").run()
+    assert not app.exception
+    assert any("Chạy phân tích" in message.value for message in app.info)
 
 
 def test_dashboard_operator_buttons_write_audit(config, monkeypatch):
@@ -261,15 +270,15 @@ def test_dashboard_operator_buttons_write_audit(config, monkeypatch):
     app = AppTest.from_file(str(root / "app/pages/4_Recommendation.py"), default_timeout=20)
     app.session_state["pipeline_result"] = result
     app.run()
-    next(button for button in app.button if button.label == "MODIFY").click().run()
+    next(button for button in app.button if button.label == "Yêu cầu sửa").click().run()
     assert any("modification" in error.value for error in app.error)
-    next(button for button in app.button if button.label == "APPROVE").click().run()
+    next(button for button in app.button if button.label == "Chấp thuận").click().run()
     assert not app.exception
     path = config["paths"]["artifacts_dir"] / "operator_decisions.csv"
     assert path.is_file()
     with path.open(encoding="utf-8", newline="") as handle:
         assert list(csv.DictReader(handle))[0]["decision"] == "APPROVE"
     previous_run = app.session_state["pipeline_result"].run_id
-    next(button for button in app.button if button.label == "RUN AGAIN").click().run()
+    next(button for button in app.button if button.label == "Chạy lại").click().run()
     assert not app.exception
     assert app.session_state["pipeline_result"].run_id != previous_run
